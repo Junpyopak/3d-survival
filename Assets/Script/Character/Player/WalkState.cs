@@ -31,7 +31,9 @@ public class WalkState : IPlayerState
         if (runInput && canRun)
         {
             speed = player.runSpeed;
-            player.stats.UseStamina(10f * Time.deltaTime);
+            player.stats.UseStamina(5f * Time.deltaTime);
+            player.stats.UseHunger(2f * Time.deltaTime);
+            player.stats.UseThirst(2f * Time.deltaTime);
             player.animator.SetBool("isRunning", true);
             player.animator.SetBool("isWalking", false);
         }
@@ -41,9 +43,9 @@ public class WalkState : IPlayerState
             player.animator.SetBool("isWalking", true);
         }
 
-        // 앉으면 속도 제한
         if (player.isSitting) speed = player.sitSpeed;
 
+        // 이동 처리만
         player.MovePlayer(speed);
     }
 }

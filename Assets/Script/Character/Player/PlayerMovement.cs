@@ -23,14 +23,10 @@ public class PlayerMovement : MonoBehaviour
     [Header("카메라 높이")]
     public float standHeight = 1.72f;
     public float sitHeight = 1.15f;
-    public float cameraSpeed = 5f;
 
     [Header("카메라 숨쉬기")]
     public float sitBreathAmplitude = 0.05f;
     public float sitBreathSpeed = 2f;
-
-    private float initialCameraY;
-    public bool isSitting = false;
 
     [HideInInspector] public CharacterController controller;
     [HideInInspector] public Animator animator;
@@ -39,9 +35,10 @@ public class PlayerMovement : MonoBehaviour
     private float xRotation = 0f;
     private Vector3 velocity;
     private float targetCameraHeight;
-    private IPlayerState currentState;
+    public IPlayerState currentState;
+    public bool isSitting = false;
 
-    void Start()
+    private void Start()
     {
         controller = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
@@ -50,12 +47,15 @@ public class PlayerMovement : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        initialCameraY = playerCamera.localPosition.y;
+
         targetCameraHeight = standHeight;
+
+      
+
         SetState(new IdleState(this));
     }
 
-    void Update()
+    private void Update()
     {
         Vector3 moveInput = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
         bool runInput = Input.GetKey(KeyCode.LeftShift);
@@ -63,10 +63,12 @@ public class PlayerMovement : MonoBehaviour
 
         currentState.KeyInput(moveInput, runInput, sitInput);
         currentState.Move();
+    }
 
+    private void LateUpdate()
+    {
         RotateCamera();
-        UpdateCameraHeight();
-        ApplySitBreath();
+        UpdateCameraPosition();
     }
 
     public void SetState(IPlayerState newState)
@@ -74,33 +76,25 @@ public class PlayerMovement : MonoBehaviour
         currentState = newState;
     }
 
-    void ApplySitBreath()
-    {
-        if (!isSitting) return;
-        Vector3 camPos = playerCamera.localPosition;
-        camPos.y = targetCameraHeight + Mathf.Sin(Time.time * sitBreathSpeed) * sitBreathAmplitude;
-        playerCamera.localPosition = camPos;
-    }
-
     public void MovePlayer(float speed)
     {
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
 
-        Vector3 move = transform.right * x + transform.forward * z;
-        controller.Move(move * speed * Time.deltaTime);
+        Vector3 move = (transform.right * x + transform.forward * z) * speed;
 
         if (controller.isGrounded && velocity.y < 0)
             velocity.y = -2f;
 
-        if (Input.GetButtonDown("Jump") && controller.isGrounded)
+        if (Input.GetButtonDown("Jump") && controller.isGrounded && !isSitting)
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
 
         velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+
+        controller.Move((move + velocity) * Time.deltaTime);
     }
 
-    void RotateCamera()
+    private void RotateCamera()
     {
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
@@ -112,24 +106,34 @@ public class PlayerMovement : MonoBehaviour
         transform.Rotate(Vector3.up * mouseX);
     }
 
-    void UpdateCameraHeight()
+    private void UpdateCameraPosition()
     {
-        Vector3 camPos = playerCamera.localPosition;
-        camPos.y = Mathf.Lerp(camPos.y, targetCameraHeight, Time.deltaTime * cameraSpeed);
-        playerCamera.localPosition = camPos;
+        //float breathOffset = isSitting ? Mathf.Sin(Time.time * sitBreathSpeed) * sitBreathAmplitude : 0f;
+
+        //// 플레이어 루트의 Y가 아닌 고정 높이 사용
+        //float cameraY = targetCameraHeight + breathOffset;
+
+        //playerCamera.position = new Vector3(
+        //    transform.position.x,
+        //    cameraY,
+        //    transform.position.z + 0.15f
+        //);
+        float breathOffset = isSitting ? Mathf.Sin(Time.time * sitBreathSpeed) * sitBreathAmplitude : 0f;
+
+        // 플레이어 로컬 기준 Z 오프셋
+        Vector3 localOffset = new Vector3(0f, targetCameraHeight + breathOffset, 0.15f);
+
+        // TransformPoint로 플레이어 기준 좌표 계산
+        playerCamera.position = transform.TransformPoint(localOffset);
     }
 
     public void Sit()
     {
         controller.height = sitHeight;
         controller.center = new Vector3(0, sitHeight / 2f, 0);
-
-        Vector3 pos = transform.position;
-        pos.y = 0 + controller.height / 2f - controller.center.y;
-        transform.position = pos;
-
         targetCameraHeight = sitHeight;
-        xRotation = 30f; // 앉았을 때 위를 바라보도록
+        isSitting = true;
+        xRotation = 30f;
         playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
 
@@ -137,11 +141,7 @@ public class PlayerMovement : MonoBehaviour
     {
         controller.height = standHeight;
         controller.center = new Vector3(0, standHeight / 2f, 0);
-
-        Vector3 pos = transform.position;
-        pos.y = 0 + controller.height / 2f - controller.center.y;
-        transform.position = pos;
-
         targetCameraHeight = standHeight;
+        isSitting = false;
     }
 }

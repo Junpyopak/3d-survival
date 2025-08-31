@@ -9,19 +9,16 @@ public class PlayerStats : MonoBehaviour
     public float maxHp = 100f;
     public float currentHp;
 
-    public float maxStamina = 100f;
+    public float maxStamina = 120f;
     public float currentStamina;
 
-    public float maxHunger = 100f;
+    public float maxHunger = 150f;
     public float currentHunger;
 
-    public float maxThirst = 100f;
+    public float maxThirst = 150f;
     public float currentThirst;
 
-    [Header("Drain/Recovery Rates")]
-    public float hungerDrainRate = 0.0167f; // 1분에 1 소모
-    public float thirstDrainRate = 0.025f;  // 1분에 1.5 소모
-    public float staminaRecoveryRate = 15f; // 앉으면 15/s 회복
+    public float staminaRecoveryRate = 1f; // 앉으면 회복
 
     public event Action<float> OnHpChanged;
     public event Action<float> OnStaminaChanged;
@@ -42,19 +39,16 @@ public class PlayerStats : MonoBehaviour
 
     void Update()
     {
-        // 배고픔/수분 감소
-        currentHunger -= hungerDrainRate * Time.deltaTime;
-        currentThirst -= thirstDrainRate * Time.deltaTime;
-
+       
         // 배고픔/수분이 0이면 체력 감소
         if (currentHunger <= 0 || currentThirst <= 0)
             TakeDamage(5f * Time.deltaTime);
 
-        // 앉아있으면 스테미나 회복
-        if (playerMovement != null && playerMovement.isSitting && currentStamina < maxStamina)
-        {
-            RecoverStamina(staminaRecoveryRate * Time.deltaTime);
-        }
+        //// 앉아있으면 스테미나 회복
+        //if (playerMovement != null && playerMovement.isSitting && currentStamina < maxStamina)
+        //{
+        //    RecoverStamina(staminaRecoveryRate * Time.deltaTime);
+        //}
 
         // Clamp
         currentHp = Mathf.Clamp(currentHp, 0, maxHp);
@@ -78,6 +72,18 @@ public class PlayerStats : MonoBehaviour
     {
         currentStamina -= amount;
     }
+
+    public void UseHunger(float amount)
+    {
+        currentHunger -= amount;
+    }
+
+    public void UseThirst(float amount)
+    {
+        currentThirst -= amount;
+    }
+
+    
 
     public void RecoverStamina(float amount)
     {
