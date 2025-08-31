@@ -58,7 +58,7 @@ public class SitIdleState : IPlayerState
         // 앉아있으면 스테미나 회복 (최대 100까지)
         if (player.stats.currentStamina < player.stats.maxStamina)
         {
-            player.stats.RecoverStamina(player.stats.staminaRecoveryRate * Time.deltaTime);
+            player.stats.RecoverStamina(player.stats.staminaRecoveryRate * 0.1f * Time.deltaTime);
         }
     }
 
