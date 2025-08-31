@@ -18,7 +18,7 @@ public class PlayerStats : MonoBehaviour
     public float maxThirst = 150f;
     public float currentThirst;
 
-    public float staminaRecoveryRate = 1f; // 앉으면 회복
+    public float staminaRecoveryRate = 3f; // 앉으면 회복
 
     public event Action<float> OnHpChanged;
     public event Action<float> OnStaminaChanged;
@@ -43,12 +43,6 @@ public class PlayerStats : MonoBehaviour
         // 배고픔/수분이 0이면 체력 감소
         if (currentHunger <= 0 || currentThirst <= 0)
             TakeDamage(5f * Time.deltaTime);
-
-        //// 앉아있으면 스테미나 회복
-        //if (playerMovement != null && playerMovement.isSitting && currentStamina < maxStamina)
-        //{
-        //    RecoverStamina(staminaRecoveryRate * Time.deltaTime);
-        //}
 
         // Clamp
         currentHp = Mathf.Clamp(currentHp, 0, maxHp);
