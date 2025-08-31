@@ -129,6 +129,8 @@ public class PlayerMovement : MonoBehaviour
         transform.position = pos;
 
         targetCameraHeight = sitHeight;
+        xRotation = 30f; // 앉았을 때 위를 바라보도록
+        playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
 
     public void Stand()

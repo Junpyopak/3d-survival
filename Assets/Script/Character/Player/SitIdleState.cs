@@ -60,22 +60,16 @@ public class SitIdleState : IPlayerState
         {
             player.stats.RecoverStamina(player.stats.staminaRecoveryRate * Time.deltaTime);
         }
-
-        // 앉은 상태에서 천천히 이동 가능
-        if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
-        {
-            player.MovePlayer(player.sitSpeed);
-        }
     }
 
-    // ---------------- Idle 상태 전환 ----------------
+
     private IEnumerator WaitAndGoIdle(float waitTime)
     {
         yield return new WaitForSeconds(waitTime);
         player.SetState(new IdleState(player));
     }
 
-    // ---------------- SitIdleLoop 전환 ----------------
+
     private IEnumerator WaitAndGoSitIdleLoop(float waitTime)
     {
         yield return new WaitForSeconds(waitTime);
